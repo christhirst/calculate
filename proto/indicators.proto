@@ -11,9 +11,17 @@ service Indicator {
   }
 
   enum IndicatorType
-  {   // whatever contents...
-    Retry = 0;
-    ManualComplete = 1;
+  { 
+    BollingerBands =0;
+    ExponentialMovingAverage =1;
+    MaxDrawdown =2;
+    MaxDrawup =3;
+    Maximum =4;
+    Minimum =5;
+    RateOfChange =6;
+    RelativeStrengthIndex =7;
+    SimpleMovingAverage =8;
+    StandardDeviation =9;
   }
 
 /* 

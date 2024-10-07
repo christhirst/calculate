@@ -1,14 +1,13 @@
-use std::vec;
-
 use calculate::indicators::BollingerBands;
 use calculate::indicators::ExponentialMovingAverage;
+use calculate::indicators::MaxDrawdown;
 use calculate::Next;
 use chrono::Duration;
+use chrono::TimeZone;
 use chrono::Utc;
 use hyper::Error;
 use proto::indicator_server::Indicator;
 use proto::indicator_server::IndicatorServer;
-use strum_macros::Display;
 use tonic::transport::Server;
 use tracing::span::Id;
 use tracing::{debug, info, warn};
@@ -17,8 +16,16 @@ mod config;
 
 #[derive(Clone, Debug)]
 enum IndicatorType {
-    Retry,
-    ManualComplete,
+    BollingerBands,
+    ExponentialMovingAverage,
+    MaxDrawdown,
+    MaxDrawup,
+    Maximum,
+    Minimum,
+    RateOfChange,
+    RelativeStrengthIndex,
+    SimpleMovingAverage,
+    StandardDeviation,
 }
 
 #[derive(Clone, Debug)]
@@ -44,11 +51,11 @@ impl TryFrom<Vec<f64>> for Action {
     }
 }
 
-#[derive(Clone, Debug)]
+/* #[derive(Clone, Debug)]
 struct Actions {
     l: String,
     list: Vec<f64>,
-}
+} */
 
 impl TryFrom<&proto::ListNumbersRequest2> for Actionss {
     type Error = ();
@@ -56,8 +63,24 @@ impl TryFrom<&proto::ListNumbersRequest2> for Actionss {
         let l = v.list.clone();
 
         let m = match v.id {
-            x if x == IndicatorType::Retry as i32 => Some(IndicatorType::Retry),
-            x if x == IndicatorType::ManualComplete as i32 => Some(IndicatorType::ManualComplete),
+            x if x == IndicatorType::BollingerBands as i32 => Some(IndicatorType::BollingerBands),
+            x if x == IndicatorType::ExponentialMovingAverage as i32 => {
+                Some(IndicatorType::ExponentialMovingAverage)
+            }
+            x if x == IndicatorType::MaxDrawdown as i32 => Some(IndicatorType::MaxDrawdown),
+            x if x == IndicatorType::MaxDrawup as i32 => Some(IndicatorType::MaxDrawup),
+            x if x == IndicatorType::Maximum as i32 => Some(IndicatorType::Maximum),
+            x if x == IndicatorType::Minimum as i32 => Some(IndicatorType::Minimum),
+            x if x == IndicatorType::RateOfChange as i32 => Some(IndicatorType::RateOfChange),
+            x if x == IndicatorType::RelativeStrengthIndex as i32 => {
+                Some(IndicatorType::RelativeStrengthIndex)
+            }
+            x if x == IndicatorType::SimpleMovingAverage as i32 => {
+                Some(IndicatorType::SimpleMovingAverage)
+            }
+            x if x == IndicatorType::StandardDeviation as i32 => {
+                Some(IndicatorType::StandardDeviation)
+            }
             e => None,
         };
 
@@ -98,14 +121,106 @@ pub mod proto {
         tonic::include_file_descriptor_set!("indicator_descriptor");
 }
 
-fn cal_list(list: Vec<f64>) -> Vec<f64> {
+fn bollinger_bands(list: Vec<f64>) -> Vec<f64> {
     let mut bb = BollingerBands::new(Duration::days(3), 2.0).unwrap();
     let now = Utc::now();
 
     list.iter().map(|a| bb.next((now, *a))).collect()
 }
 
-fn cal_lis2t(list: Vec<f64>) -> Vec<f64> {
+fn exponential_moving_average(list: Vec<f64>) -> Vec<f64> {
+    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
+    let now = Utc::now();
+
+    ema.next((now + Duration::days(1), 10.0));
+
+    list.iter().map(|a| ema.next((now, *a))).collect()
+}
+
+fn max_drawdown(list: Vec<f64>) -> Vec<f64> {
+    let duration = Duration::seconds(2);
+    let mut max = MaxDrawdown::new(duration).unwrap();
+    let start_time = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+
+    max.next((start_time, 4.0));
+
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| max.next((start_time + Duration::seconds((i + 1) as i64), *a)))
+        .collect()
+}
+
+fn max_drawup(list: Vec<f64>) -> Vec<f64> {
+    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
+    let now = Utc::now();
+
+    assert_eq!(ema.next((now, 4.0)), 4.0);
+    ema.next((now + Duration::days(1), 10.0));
+
+    list.iter().map(|a| ema.next((now, *a))).collect()
+}
+
+fn maximum(list: Vec<f64>) -> Vec<f64> {
+    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
+    let now = Utc::now();
+
+    assert_eq!(ema.next((now, 4.0)), 4.0);
+    ema.next((now + Duration::days(1), 10.0));
+
+    list.iter().map(|a| ema.next((now, *a))).collect()
+}
+
+fn mean_absolute_deviation(list: Vec<f64>) -> Vec<f64> {
+    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
+    let now = Utc::now();
+
+    assert_eq!(ema.next((now, 4.0)), 4.0);
+    ema.next((now + Duration::days(1), 10.0));
+
+    list.iter().map(|a| ema.next((now, *a))).collect()
+}
+
+fn minimum(list: Vec<f64>) -> Vec<f64> {
+    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
+    let now = Utc::now();
+
+    assert_eq!(ema.next((now, 4.0)), 4.0);
+    ema.next((now + Duration::days(1), 10.0));
+
+    list.iter().map(|a| ema.next((now, *a))).collect()
+}
+
+fn rate_of_change(list: Vec<f64>) -> Vec<f64> {
+    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
+    let now = Utc::now();
+
+    assert_eq!(ema.next((now, 4.0)), 4.0);
+    ema.next((now + Duration::days(1), 10.0));
+
+    list.iter().map(|a| ema.next((now, *a))).collect()
+}
+
+fn relative_strength_index(list: Vec<f64>) -> Vec<f64> {
+    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
+    let now = Utc::now();
+
+    assert_eq!(ema.next((now, 4.0)), 4.0);
+    ema.next((now + Duration::days(1), 10.0));
+
+    list.iter().map(|a| ema.next((now, *a))).collect()
+}
+
+fn simple_moving_average(list: Vec<f64>) -> Vec<f64> {
+    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
+    let now = Utc::now();
+
+    assert_eq!(ema.next((now, 4.0)), 4.0);
+    ema.next((now + Duration::days(1), 10.0));
+
+    list.iter().map(|a| ema.next((now, *a))).collect()
+}
+
+fn standard_deviation(list: Vec<f64>) -> Vec<f64> {
     let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
     let now = Utc::now();
 
@@ -132,7 +247,7 @@ impl Indicator for IndicatorService {
         let r: Action = _request.get_ref().list.clone().try_into().unwrap();
         println!("{:?}", r);
 
-        let list = cal_list(r.list);
+        let list = bollinger_bands(r.list);
 
         Ok(tonic::Response::new(proto::ListNumbersResponse {
             result: list,
@@ -147,27 +262,35 @@ impl Indicator for IndicatorService {
             .get_ref()
             .try_into()
             .map_err(|e| tonic::Status::new(tonic::Code::NotFound, format!("{:?}", e)))?;
-
+        println!("{:?}", r);
         let oo = r.l.ok_or(tonic::Status::new(
             tonic::Code::NotFound,
-            format!("Action not found"),
+            String::from("Action not found"),
         ))?;
         match oo {
-            IndicatorType::Retry => {
-                let list = cal_list(r.list);
+            IndicatorType::BollingerBands => {
+                let list = bollinger_bands(r.list);
                 Ok(tonic::Response::new(proto::ListNumbersResponse {
                     result: list,
                 }))
             }
-            IndicatorType::ManualComplete => {
-                let list = cal_lis2t(r.list);
+            IndicatorType::ExponentialMovingAverage => {
+                let list = exponential_moving_average(r.list);
                 Ok(tonic::Response::new(proto::ListNumbersResponse {
                     result: list,
                 }))
             }
-            _ => {
-                panic!("Unknown action");
+            IndicatorType::MaxDrawdown => {
+                let list = max_drawdown(r.list);
+                Ok(tonic::Response::new(proto::ListNumbersResponse {
+                    result: list,
+                }))
             }
+
+            _ => Err(tonic::Status::new(
+                tonic::Code::NotFound,
+                String::from("Action not found"),
+            )),
         }
 
         //let list = cal_list(r.list);
