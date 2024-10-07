@@ -1,0 +1,32 @@
+
+syntax = "proto3";
+
+package calculate;
+
+
+service Indicator {
+    rpc ConfReload(UserRequest) returns (ConfigResponse);
+    rpc GenList(ListNumbersRequest) returns (ListNumbersResponse);
+    rpc GenListe(ListNumbersRequest2) returns (ListNumbersResponse);
+  }
+
+  enum IndicatorType
+  {   // whatever contents...
+    Retry = 0;
+    ManualComplete = 1;
+  }
+
+/* 
+  message Task {
+    string id = 1;
+    repeated double list = 2;
+  } */
+
+  message UserRequest {  }
+  message ListNumbersRequest  { repeated double list = 2 ; }
+  message ListNumbersRequest2  {
+    IndicatorType id = 1;    
+    repeated double list = 2; }
+  message ListResponse { repeated string result = 4 ; }
+  message ListNumbersResponse  { repeated double result = 3 ; }
+  message ConfigResponse { string result = 1; }
