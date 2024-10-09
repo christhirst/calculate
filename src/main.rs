@@ -268,7 +268,7 @@ impl Indicator for IndicatorService {
         _request: tonic::Request<proto::ListNumbersRequest>,
     ) -> Result<tonic::Response<proto::ListNumbersResponse>, tonic::Status> {
         let r: Action = _request.get_ref().list.clone().try_into().unwrap();
-        println!("{:?}", r);
+        //println!("{:?}", r);
 
         let list = bollinger_bands(r.list);
 
@@ -285,7 +285,7 @@ impl Indicator for IndicatorService {
             .get_ref()
             .try_into()
             .map_err(|e| tonic::Status::new(tonic::Code::NotFound, format!("{:?}", e)))?;
-        println!("{:?}", r);
+        //println!("{:?}", r);
         let oo = r.l.ok_or(tonic::Status::new(
             tonic::Code::NotFound,
             String::from("Action not found"),
