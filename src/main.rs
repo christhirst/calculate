@@ -1,6 +1,14 @@
 use calculate::indicators::BollingerBands;
 use calculate::indicators::ExponentialMovingAverage;
 use calculate::indicators::MaxDrawdown;
+use calculate::indicators::MaxDrawup;
+use calculate::indicators::Maximum;
+use calculate::indicators::MeanAbsoluteDeviation;
+use calculate::indicators::Minimum;
+use calculate::indicators::RateOfChange;
+use calculate::indicators::RelativeStrengthIndex;
+use calculate::indicators::SimpleMovingAverage;
+use calculate::indicators::StandardDeviation;
 use calculate::Next;
 use chrono::Duration;
 use chrono::TimeZone;
@@ -21,6 +29,7 @@ enum IndicatorType {
     MaxDrawdown,
     MaxDrawup,
     Maximum,
+    MeanAbsoluteDeviation,
     Minimum,
     RateOfChange,
     RelativeStrengthIndex,
@@ -70,6 +79,9 @@ impl TryFrom<&proto::ListNumbersRequest2> for Actionss {
             x if x == IndicatorType::MaxDrawdown as i32 => Some(IndicatorType::MaxDrawdown),
             x if x == IndicatorType::MaxDrawup as i32 => Some(IndicatorType::MaxDrawup),
             x if x == IndicatorType::Maximum as i32 => Some(IndicatorType::Maximum),
+            x if x == IndicatorType::MeanAbsoluteDeviation as i32 => {
+                Some(IndicatorType::MeanAbsoluteDeviation)
+            }
             x if x == IndicatorType::Minimum as i32 => Some(IndicatorType::Minimum),
             x if x == IndicatorType::RateOfChange as i32 => Some(IndicatorType::RateOfChange),
             x if x == IndicatorType::RelativeStrengthIndex as i32 => {
@@ -138,96 +150,107 @@ fn exponential_moving_average(list: Vec<f64>) -> Vec<f64> {
 }
 
 fn max_drawdown(list: Vec<f64>) -> Vec<f64> {
-    let duration = Duration::seconds(2);
+    //Duration just for the timewindow, needs to be configureable
+    let duration = Duration::seconds(10000);
     let mut max = MaxDrawdown::new(duration).unwrap();
     let start_time = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
-    max.next((start_time, 4.0));
-
     list.iter()
         .enumerate()
-        .map(|(i, a)| max.next((start_time + Duration::seconds((i + 1) as i64), *a)))
+        .map(|(i, a)| max.next((start_time + Duration::seconds((i) as i64), *a)))
         .collect()
 }
 
 fn max_drawup(list: Vec<f64>) -> Vec<f64> {
-    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
-    let now = Utc::now();
+    //Duration just for the timewindow, needs to be configureable
+    let duration = Duration::seconds(2);
+    let mut max = MaxDrawup::new(duration).unwrap();
+    let start_time = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
-    assert_eq!(ema.next((now, 4.0)), 4.0);
-    ema.next((now + Duration::days(1), 10.0));
-
-    list.iter().map(|a| ema.next((now, *a))).collect()
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| max.next((start_time + Duration::seconds((i) as i64), *a)))
+        .collect()
 }
 
 fn maximum(list: Vec<f64>) -> Vec<f64> {
-    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
-    let now = Utc::now();
+    let duration = Duration::seconds(100);
+    let mut max = Maximum::new(duration).unwrap();
+    let start_time = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
-    assert_eq!(ema.next((now, 4.0)), 4.0);
-    ema.next((now + Duration::days(1), 10.0));
-
-    list.iter().map(|a| ema.next((now, *a))).collect()
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| max.next((start_time + Duration::seconds((i * 50) as i64), *a)))
+        .collect()
 }
 
 fn mean_absolute_deviation(list: Vec<f64>) -> Vec<f64> {
-    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
-    let now = Utc::now();
+    let duration = Duration::seconds(5);
+    let mut mad = MeanAbsoluteDeviation::new(duration).unwrap();
 
-    assert_eq!(ema.next((now, 4.0)), 4.0);
-    ema.next((now + Duration::days(1), 10.0));
-
-    list.iter().map(|a| ema.next((now, *a))).collect()
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| mad.next((Utc.timestamp(i as i64, 0), *a)))
+        .collect()
 }
 
 fn minimum(list: Vec<f64>) -> Vec<f64> {
-    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
-    let now = Utc::now();
-
-    assert_eq!(ema.next((now, 4.0)), 4.0);
-    ema.next((now + Duration::days(1), 10.0));
-
-    list.iter().map(|a| ema.next((now, *a))).collect()
+    let duration = Duration::days(2);
+    let mut min = Minimum::new(duration).unwrap();
+    //TODO all the same date format
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| {
+            min.next((
+                Utc.datetime_from_str("2023-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")
+                    .unwrap(),
+                *a,
+            ))
+        })
+        .collect()
 }
 
 fn rate_of_change(list: Vec<f64>) -> Vec<f64> {
-    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
-    let now = Utc::now();
+    let mut roc = RateOfChange::new(Duration::seconds(3)).unwrap();
+    let start_time = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
-    assert_eq!(ema.next((now, 4.0)), 4.0);
-    ema.next((now + Duration::days(1), 10.0));
-
-    list.iter().map(|a| ema.next((now, *a))).collect()
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| roc.next((start_time + Duration::seconds(i as i64), *a)))
+        .collect()
 }
 
 fn relative_strength_index(list: Vec<f64>) -> Vec<f64> {
-    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
-    let now = Utc::now();
+    let mut rsi = RelativeStrengthIndex::new(Duration::days(3)).unwrap();
+    let timestamp = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
-    assert_eq!(ema.next((now, 4.0)), 4.0);
-    ema.next((now + Duration::days(1), 10.0));
-
-    list.iter().map(|a| ema.next((now, *a))).collect()
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| rsi.next((timestamp + Duration::days(1), *a)))
+        .collect()
 }
 
 fn simple_moving_average(list: Vec<f64>) -> Vec<f64> {
-    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
-    let now = Utc::now();
+    let duration = Duration::seconds(4);
+    let mut sma = SimpleMovingAverage::new(duration).unwrap();
+    let start_time = Utc::now();
+    let elapsed_time = Duration::seconds(1);
 
-    assert_eq!(ema.next((now, 4.0)), 4.0);
-    ema.next((now + Duration::days(1), 10.0));
-
-    list.iter().map(|a| ema.next((now, *a))).collect()
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| sma.next((start_time + elapsed_time * (i as i32), *a)))
+        .collect()
 }
 
 fn standard_deviation(list: Vec<f64>) -> Vec<f64> {
-    let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
+    let duration = Duration::seconds(4);
+    let mut sd = StandardDeviation::new(duration).unwrap();
     let now = Utc::now();
 
-    assert_eq!(ema.next((now, 4.0)), 4.0);
-    ema.next((now + Duration::days(1), 10.0));
-
-    list.iter().map(|a| ema.next((now, *a))).collect()
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| sd.next(((now + Duration::seconds(3 + i as i64)), *a)))
+        .collect()
 }
 
 #[tonic::async_trait]
@@ -282,6 +305,59 @@ impl Indicator for IndicatorService {
             }
             IndicatorType::MaxDrawdown => {
                 let list = max_drawdown(r.list);
+                Ok(tonic::Response::new(proto::ListNumbersResponse {
+                    result: list,
+                }))
+            }
+            IndicatorType::MaxDrawup => {
+                let list = max_drawup(r.list);
+                Ok(tonic::Response::new(proto::ListNumbersResponse {
+                    result: list,
+                }))
+            }
+            IndicatorType::Maximum => {
+                let list = maximum(r.list);
+                Ok(tonic::Response::new(proto::ListNumbersResponse {
+                    result: list,
+                }))
+            }
+            IndicatorType::MeanAbsoluteDeviation => {
+                let list = mean_absolute_deviation(r.list);
+                Ok(tonic::Response::new(proto::ListNumbersResponse {
+                    result: list,
+                }))
+            }
+
+            IndicatorType::Minimum => {
+                let list = minimum(r.list);
+                Ok(tonic::Response::new(proto::ListNumbersResponse {
+                    result: list,
+                }))
+            }
+
+            IndicatorType::RateOfChange => {
+                let list = rate_of_change(r.list);
+                Ok(tonic::Response::new(proto::ListNumbersResponse {
+                    result: list,
+                }))
+            }
+
+            IndicatorType::RelativeStrengthIndex => {
+                let list = relative_strength_index(r.list);
+                Ok(tonic::Response::new(proto::ListNumbersResponse {
+                    result: list,
+                }))
+            }
+
+            IndicatorType::SimpleMovingAverage => {
+                let list = simple_moving_average(r.list);
+                Ok(tonic::Response::new(proto::ListNumbersResponse {
+                    result: list,
+                }))
+            }
+
+            IndicatorType::StandardDeviation => {
+                let list = standard_deviation(r.list);
                 Ok(tonic::Response::new(proto::ListNumbersResponse {
                     result: list,
                 }))

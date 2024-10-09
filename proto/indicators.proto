@@ -17,11 +17,12 @@ service Indicator {
     MaxDrawdown =2;
     MaxDrawup =3;
     Maximum =4;
-    Minimum =5;
-    RateOfChange =6;
-    RelativeStrengthIndex =7;
-    SimpleMovingAverage =8;
-    StandardDeviation =9;
+    MeanAbsoluteDeviation =5;
+    Minimum =6;
+    RateOfChange =7;
+    RelativeStrengthIndex =8;
+    SimpleMovingAverage =9;
+    StandardDeviation =10;
   }
 
 /* 
