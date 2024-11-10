@@ -2,7 +2,7 @@
 .shuttle*
 Secrets*.toml
 
-.*
+.env
 !.gitignore
 
 _*
