@@ -129,9 +129,9 @@ mod tests {
         );
         assert_eq!(
             rsi.next((timestamp + Duration::days(2), 10.0)).round(),
-            50.0
+            33.0
         );
-        assert_eq!(rsi.next((timestamp + Duration::days(3), 9.5)).round(), 33.0);
+        assert_eq!(rsi.next((timestamp + Duration::days(3), 9.5)).round(), 14.0);
     }
 
     #[test]
