@@ -13,20 +13,24 @@ use crate::{proto, IndicatorService};
 
 use super::types::{Action, Actionss, IndicatorType};
 
-fn bollinger_bands(list: Vec<f64>) -> Vec<f64> {
-    let mut bb = BollingerBands::new(Duration::days(3), 2.0).unwrap();
+fn bollinger_bands(list: Vec<f64>, multiplier: f64, time_window: i64) -> Vec<f64> {
+    let mut bb = BollingerBands::new(Duration::days(time_window), multiplier).unwrap();
     let now = Utc::now();
 
-    list.iter().map(|a| bb.next((now, *a))).collect()
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| bb.next((now + Duration::days(i as i64), *a)))
+        .collect()
 }
 
 fn exponential_moving_average(list: Vec<f64>) -> Vec<f64> {
     let mut ema = ExponentialMovingAverage::new(Duration::days(5)).unwrap();
     let now = Utc::now();
 
-    ema.next((now + Duration::days(1), 10.0));
-
-    list.iter().map(|a| ema.next((now, *a))).collect()
+    list.iter()
+        .enumerate()
+        .map(|(i, a)| ema.next((now + Duration::days(i as i64), *a)))
+        .collect()
 }
 
 fn max_drawdown(list: Vec<f64>) -> Vec<f64> {
@@ -151,7 +155,7 @@ impl Indicator for IndicatorService {
         let r: Action = _request.get_ref().list.clone().try_into().unwrap();
         //println!("{:?}", r);
 
-        let list = bollinger_bands(r.list);
+        let list = bollinger_bands(r.list, 2.0, 5);
 
         Ok(tonic::Response::new(proto::ListNumbersResponse {
             result: list,
@@ -166,14 +170,19 @@ impl Indicator for IndicatorService {
             .get_ref()
             .try_into()
             .map_err(|e| tonic::Status::new(tonic::Code::NotFound, format!("{:?}", e)))?;
-        //println!("{:?}", r);
         let oo = r.l.ok_or(tonic::Status::new(
             tonic::Code::NotFound,
             String::from("Action not found"),
         ))?;
         match oo {
             IndicatorType::BollingerBands => {
-                let list = bollinger_bands(r.list);
+                let opt = if let Some(r) = r.options {
+                    (r.multiplier.unwrap_or(2.0), r.period.unwrap_or(5))
+                } else {
+                    (2.0, 5)
+                };
+                println!("{:?}", opt);
+                let list = bollinger_bands(r.list, opt.0, opt.1);
                 Ok(tonic::Response::new(proto::ListNumbersResponse {
                     result: list,
                 }))

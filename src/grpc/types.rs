@@ -16,8 +16,15 @@ pub enum IndicatorType {
 }
 
 #[derive(Clone, Debug)]
+pub struct Opt {
+    pub multiplier: Option<f64>,
+    pub period: Option<i64>,
+}
+
+#[derive(Clone, Debug)]
 pub struct Actionss {
     pub l: Option<IndicatorType>,
+    pub options: Option<Opt>,
     pub list: Vec<f64>,
 }
 
@@ -63,6 +70,19 @@ impl TryFrom<&proto::ListNumbersRequest2> for Actionss {
             e => None,
         };
 
-        Ok(Actionss { l: m, list: l })
+        let ii = if let Some(ee) = v.opt.clone() {
+            (Some(ee.multiplier), Some(ee.period))
+        } else {
+            (None, None)
+        };
+
+        Ok(Actionss {
+            l: m,
+            options: Some(Opt {
+                multiplier: ii.0,
+                period: ii.1,
+            }),
+            list: l,
+        })
     }
 }
