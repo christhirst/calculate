@@ -10,7 +10,7 @@ use chrono::{Duration, TimeZone, Utc};
 use proto::indicator_server::Indicator;
 
 use crate::{proto, IndicatorService};
-
+//TODO Keltner’s Channels, Momentum Oscillator,  TTM Squeeze
 use super::types::{Action, Actionss, IndicatorType};
 
 fn bollinger_bands(list: Vec<f64>, multiplier: f64, time_window: i64) -> Vec<f64> {
