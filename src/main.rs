@@ -29,13 +29,21 @@ pub struct IndicatorService;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    //tracing subscriber
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_thread_ids(true)
+        .with_thread_names(true)
+        .init();
+    info!("Starting GRPC server...");
+
     let addr = "[::1]:50051".parse().unwrap();
     //GRPC server
     let calc = IndicatorService::default();
     //GRPC reflection
     let service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(proto::FILE_DESCRIPTOR_SET)
-        .build()
+        .build_v1()
         .unwrap();
 
     Server::builder()

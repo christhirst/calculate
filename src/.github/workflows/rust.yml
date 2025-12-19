@@ -72,8 +72,8 @@ jobs:
           context: .
           target: runtime
           push: true
-          tags: raynkami/rust.auto:v0.0.22
-          labels: rust.auto
+          tags: raynkami/rust.indicators:v0.1.01
+          labels: rust.indicators
 
   del_runs:
     runs-on: ubuntu-latest

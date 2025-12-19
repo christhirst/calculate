@@ -5,22 +5,24 @@ edition = "2021"
 publish = false
 
 [dependencies]
-tokio = { version = "1.36", features = ["full"] } 
-chrono = { version = "0.4.35"}
-prost ="0.12"
-tonic-reflection = "0.11"
-tonic = "0.11"
-tracing = "0.1"# for our async runtime
-tracing-subscriber = "0.3"
-tower = { version = "0.4.13", features = ["full"] }
-hyper = { version = "0.14.23", features = ["full"] }
-toml = "0.8"
+tokio = { version = "1.48", features = ["full"] }
+config = "0.15.19"
+chrono = { version = "0.4.40" }
+prost = "0.14.1"
+tonic-prost = "0.14.1"
+tonic-reflection = "0.14.1"
+tonic = "0.14.1"
+
+tracing = "0.1.44"
+tracing-subscriber = "0.3.22"
+tower = { version = "0.5.2", features = ["full"] }
+hyper = { version = "1.8.1", features = ["full"] }
+
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-thiserror = "1.0"
-strum_macros = "0.26"
-
+thiserror = "2.0.17"
+strum_macros = "0.27.2"
 
 
 [build-dependencies]
-tonic-build ="0.11"
+tonic-prost-build = "0.14.1"
