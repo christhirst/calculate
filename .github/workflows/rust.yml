@@ -72,8 +72,8 @@ jobs:
           context: .
           target: runtime
           push: true
-          tags: raynkami/rust.calc:v0.0.1
-          labels: rust.auto
+          tags: raynkami/grpc.indicator:v0.0.2
+          labels: grpc.indicator
 
   del_runs:
     runs-on: ubuntu-latest

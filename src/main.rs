@@ -37,7 +37,7 @@ async fn main() -> Result<(), Error> {
         .init();
     info!("Starting GRPC server...");
 
-    let addr = "[::1]:50051".parse().unwrap();
+    let addr = "[::]:50051".parse().unwrap();
     //GRPC server
     let calc = IndicatorService::default();
     //GRPC reflection
