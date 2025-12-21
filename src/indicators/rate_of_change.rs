@@ -32,7 +32,7 @@ impl RateOfChange {
         while self
             .window
             .front()
-            .map_or(false, |(time, _)| *time < current_time - self.duration)
+            .is_some_and(|(time, _)| *time < current_time - self.duration)
         {
             self.window.pop_front();
         }
@@ -51,13 +51,13 @@ impl Next<f64> for RateOfChange {
 
         // Calculate the rate of change if we have at least two data points
         if self.window.len() > 1 {
-            let (oldest_time, oldest_value) =
+            let (_oldest_time, oldest_value) =
                 self.window.front().expect("Window has at least one item");
-            let (newest_time, newest_value) =
+            let (_newest_time, newest_value) =
                 self.window.back().expect("Window has at least one item");
 
             // Ensure we do not divide by zero
-            if oldest_value.clone() != 0.0 {
+            if *oldest_value != 0.0 {
                 (newest_value - oldest_value) / oldest_value * 100.0
             } else {
                 0.0

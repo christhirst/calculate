@@ -83,8 +83,8 @@ fn minimum(list: Vec<f64>) -> Vec<f64> {
     let mut min = Minimum::new(duration).unwrap();
     //TODO all the same date format
     list.iter()
-        .enumerate()
-        .map(|(i, a)| {
+        
+        .map(|a| {
             min.next((
                 Utc.datetime_from_str("2023-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")
                     .unwrap(),
@@ -109,8 +109,8 @@ fn relative_strength_index(list: Vec<f64>) -> Vec<f64> {
     let timestamp = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
     list.iter()
-        .enumerate()
-        .map(|(i, a)| rsi.next((timestamp + Duration::days(1), *a)))
+        
+        .map(|a| rsi.next((timestamp + Duration::days(1), *a)))
         .collect()
 }
 

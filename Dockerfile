@@ -24,9 +24,10 @@ RUN cargo build --release --target x86_64-unknown-linux-musl --bin calculate
 
 
 FROM gcr.io/distroless/cc AS runtime
-#WORKDIR /usr/local/bin/app
+WORKDIR /app
 COPY --from=planner /app/Config.toml /
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/calculate /usr/local/bin/app
+COPY --from=builder /app/config /app/config
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/calculate /app/calculate
 
 EXPOSE 8180 8280 50051
-CMD ["/usr/local/bin/app"]
+CMD ["/app/calculate"]

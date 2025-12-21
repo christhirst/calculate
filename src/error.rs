@@ -1,8 +1,9 @@
-use serde::Serialize;
 #[derive(thiserror::Error, Debug)]
 pub enum CLIError {
     #[error("Database error")]
     ConvertingError,
+    #[error("Settings error: {0}")]
+    ConfigError(#[from] config::ConfigError),
 }
 
 use std::error::Error;

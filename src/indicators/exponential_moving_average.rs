@@ -37,7 +37,7 @@ impl ExponentialMovingAverage {
         while self
             .window
             .front()
-            .map_or(false, |(time, _)| *time <= current_time - self.duration)
+            .is_some_and(|(time, _)| *time <= current_time - self.duration)
         {
             self.window.pop_front();
         }

@@ -32,7 +32,7 @@ impl SimpleMovingAverage {
         while self
             .window
             .front()
-            .map_or(false, |(time, _)| *time <= current_time - self.duration)
+            .is_some_and(|(time, _)| *time <= current_time - self.duration)
         {
             if let Some((_, value)) = self.window.pop_front() {
                 self.sum -= value;

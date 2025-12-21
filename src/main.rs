@@ -1,12 +1,13 @@
+use calculate::error::CLIError;
 use hyper::Error;
 use proto::indicator_server::IndicatorServer;
 use tonic::transport::Server;
-use tracing::span::Id;
-use tracing::{debug, info, warn};
+use tracing::info;
 
 mod config;
 mod grpc;
 mod pattern;
+mod settings;
 
 pub mod proto {
     tonic::include_proto!("calculate");
@@ -28,7 +29,7 @@ pub mod proto {
 pub struct IndicatorService;
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<(), CLIError> {
     //tracing subscriber
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
@@ -37,9 +38,13 @@ async fn main() -> Result<(), Error> {
         .init();
     info!("Starting GRPC server...");
 
-    let addr = "[::]:50051".parse().unwrap();
+    let settings = settings::Settings::new()?;
+
+    let addr = settings.url.parse().unwrap();
+
+    //let addr = "[::]:50051".parse().unwrap();
     //GRPC server
-    let calc = IndicatorService::default();
+    let calc = IndicatorService;
     //GRPC reflection
     let service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(proto::FILE_DESCRIPTOR_SET)

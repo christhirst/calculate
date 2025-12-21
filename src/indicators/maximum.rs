@@ -37,7 +37,7 @@ impl Maximum {
         while self
             .window
             .front()
-            .map_or(false, |(time, _)| *time <= current_time - self.duration)
+            .is_some_and(|(time, _)| *time <= current_time - self.duration)
         {
             self.window.pop_front();
         }
@@ -78,9 +78,9 @@ impl fmt::Display for Maximum {
 }
 
 mod tests {
-    use chrono::TimeZone;
+    use chrono::{Duration, TimeZone, Utc};
 
-    use super::*;
+    use crate::{indicators::*, Next, Reset};
 
     #[test]
     fn test_new() {
@@ -92,7 +92,7 @@ mod tests {
     fn test_next() {
         let duration = Duration::seconds(2);
         let mut max = Maximum::new(duration).unwrap();
-        let start_time = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+        let start_time = Utc.with_ymd_and_hms(2020, 1, 1, 0, 0, 0).unwrap();
 
         assert_eq!(max.next((start_time, 4.0)), 4.0);
         assert_eq!(max.next((start_time + Duration::seconds(1), 1.2)), 4.0);

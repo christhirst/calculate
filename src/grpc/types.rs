@@ -67,10 +67,10 @@ impl TryFrom<&proto::ListNumbersRequest2> for Actionss {
             x if x == IndicatorType::StandardDeviation as i32 => {
                 Some(IndicatorType::StandardDeviation)
             }
-            e => None,
+            _e => None,
         };
 
-        let ii = if let Some(ee) = v.opt.clone() {
+        let ii = if let Some(ee) = v.opt {
             (Some(ee.multiplier), Some(ee.period))
         } else {
             (None, None)

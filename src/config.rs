@@ -1,6 +1,5 @@
-use std::{fs, io, path::Path};
+use std::io;
 
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub enum ConfigError {
