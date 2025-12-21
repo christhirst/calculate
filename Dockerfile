@@ -25,7 +25,7 @@ RUN cargo build --release --target x86_64-unknown-linux-musl --bin calculate
 
 FROM gcr.io/distroless/cc AS runtime
 WORKDIR /app
-COPY --from=planner /app/Config.toml /
+COPY --from=builder /app/Config.toml /
 COPY --from=builder /app/config /app/config
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/calculate /app/calculate
 
