@@ -31,6 +31,6 @@ mod tests {
         let settings = settings.unwrap();
 
         // Check default values from config/default.toml
-        assert_eq!(settings.url, "http://[::]:50051");
+        assert_eq!(settings.url, "[::]:50051");
     }
 }
