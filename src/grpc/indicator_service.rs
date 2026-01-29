@@ -83,7 +83,6 @@ fn minimum(list: Vec<f64>) -> Vec<f64> {
     let mut min = Minimum::new(duration).unwrap();
     //TODO all the same date format
     list.iter()
-        
         .map(|a| {
             min.next((
                 Utc.datetime_from_str("2023-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")
@@ -109,14 +108,13 @@ fn relative_strength_index(list: Vec<f64>) -> Vec<f64> {
     let timestamp = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
     list.iter()
-        
         .map(|a| rsi.next((timestamp + Duration::days(1), *a)))
         .collect()
 }
 
-fn simple_moving_average(list: Vec<f64>) -> Vec<f64> {
+fn simple_moving_average(list: Vec<f64>, period: i64) -> Vec<f64> {
     //Duration just for the timewindow, needs to be configureable
-    let duration = Duration::seconds(5);
+    let duration = Duration::seconds(period);
     let mut sma = SimpleMovingAverage::new(duration).unwrap();
     let start_time = Utc::now();
     let elapsed_time = Duration::seconds(1);
@@ -240,7 +238,12 @@ impl Indicator for IndicatorService {
             }
 
             IndicatorType::SimpleMovingAverage => {
-                let list = simple_moving_average(r.list);
+                let opt = if let Some(r) = r.options {
+                    (r.multiplier.unwrap_or(1.0), r.period.unwrap_or(5))
+                } else {
+                    (1.0, 5)
+                };
+                let list = simple_moving_average(r.list, opt.1);
                 Ok(tonic::Response::new(proto::ListNumbersResponse {
                     result: list,
                 }))
@@ -264,5 +267,26 @@ impl Indicator for IndicatorService {
         /* Ok(tonic::Response::new(proto::ListNumbersResponse {
             result: vec![1.0],
         })) */
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simple_moving_average() {
+        let list = vec![10.0, 20.0, 30.0, 40.0, 50.0];
+        let period = 2;
+        let result = simple_moving_average(list, period);
+
+        // Expected behavior:
+        // t=0, val=10 -> sum=10, len=1 -> avg=10.0
+        // t=1, val=20 -> sum=30, len=2 -> avg=15.0
+        // t=2, val=30 -> sum=60, len=3 -> avg=20.0 (full window)
+        // t=3, val=40 -> remove 10 (t=0 <= t=3-3=0) -> sum=50, add 40 -> sum=90, len=3 -> avg=30.0
+        // t=4, val=50 -> remove 20 (t=1 <= t=4-3=1) -> sum=70, add 50 -> sum=120, len=3 -> avg=40.0
+
+        assert_eq!(result, vec![10.0, 15.0, 20.0, 30.0, 40.0]);
     }
 }

@@ -29,5 +29,5 @@ COPY --from=builder /app/Config.toml /
 COPY --from=builder /app/config /app/config
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/calculate /app/calculate
 
-EXPOSE 8180 8280 50051
+EXPOSE 50051
 CMD ["/app/calculate"]
