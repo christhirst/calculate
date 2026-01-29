@@ -72,7 +72,7 @@ jobs:
           context: .
           target: runtime
           push: true
-          tags: raynkami/grpc.indicator:v0.0.3
+          tags: raynkami/grpc.indicator:v0.0.4
           labels: grpc.indicator
 
   del_runs:

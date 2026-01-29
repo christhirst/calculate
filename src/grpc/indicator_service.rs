@@ -238,12 +238,10 @@ impl Indicator for IndicatorService {
             }
 
             IndicatorType::SimpleMovingAverage => {
-                let opt = if let Some(r) = r.options {
-                    (r.multiplier.unwrap_or(1.0), r.period.unwrap_or(5))
-                } else {
-                    (1.0, 5)
-                };
-                let list = simple_moving_average(r.list, opt.1);
+                let o = r.options.unwrap();
+                let period = o.period.unwrap();
+
+                let list = simple_moving_average(r.list, period);
                 Ok(tonic::Response::new(proto::ListNumbersResponse {
                     result: list,
                 }))
