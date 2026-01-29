@@ -277,7 +277,7 @@ mod tests {
     #[test]
     fn test_simple_moving_average() {
         let list = vec![10.0, 20.0, 30.0, 40.0, 50.0];
-        let period = 2;
+        let period = 3;
         let result = simple_moving_average(list, period);
 
         // Expected behavior:
